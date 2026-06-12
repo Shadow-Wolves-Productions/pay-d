@@ -1,0 +1,92 @@
+{
+  "name": "Template",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "abn": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "logo_size": {
+      "type": "number",
+      "default": 80
+    },
+    "accent_colour": {
+      "type": "string",
+      "default": "#f59e0b"
+    },
+    "gst_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "bank_name": {
+      "type": "string"
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "bsb": {
+      "type": "string"
+    },
+    "account_number": {
+      "type": "string"
+    },
+    "paypal_email": {
+      "type": "string"
+    },
+    "pay_id": {
+      "type": "string"
+    },
+    "other_payment": {
+      "type": "string"
+    },
+    "invoice_prefix": {
+      "type": "string",
+      "default": "INV"
+    },
+    "default_title": {
+      "type": "string",
+      "enum": [
+        "Tax Invoice",
+        "Invoice",
+        "Pro Forma",
+        "Quote",
+        "Receipt"
+      ],
+      "default": "Tax Invoice"
+    },
+    "default_payment_terms": {
+      "type": "string",
+      "default": "Payment due within 14 days of invoice date."
+    },
+    "default_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
