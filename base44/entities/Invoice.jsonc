@@ -1,0 +1,44 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "Unique invoice number or ID"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Name of the client"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Invoice total amount"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment due date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Sent",
+        "Paid",
+        "Overdue"
+      ],
+      "default": "Draft",
+      "description": "Current invoice status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the invoice"
+    }
+  },
+  "required": [
+    "invoice_number",
+    "client_name",
+    "amount",
+    "due_date"
+  ]
+}
