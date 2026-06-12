@@ -26,52 +26,62 @@ export default function LineItemsTable({ items, onChange, gstEnabled }) {
 
   return (
     <div className="space-y-3">
-      {/* Header */}
-      <div className="hidden md:grid grid-cols-[2fr_80px_100px_110px_60px_80px_32px] gap-2 text-xs text-muted-foreground font-medium uppercase tracking-wider px-1">
-        <span>Description</span>
-        <span>Qty</span>
-        <span>Unit</span>
-        <span className="text-right">Unit Price</span>
-        {gstEnabled && <span className="text-center">GST</span>}
-        <span className="text-right">Total</span>
-        <span />
-      </div>
-
       {items.map((item, idx) => (
-        <div key={idx} className="grid grid-cols-1 md:grid-cols-[2fr_80px_100px_110px_60px_80px_32px] gap-2 items-center bg-secondary/30 rounded-lg p-3 md:p-2">
-          <Input
-            placeholder="Description"
-            value={item.description}
-            onChange={e => update(idx, 'description', e.target.value)}
-            className="bg-secondary border-0 h-8"
-          />
-          <Input
-            type="number" min="0" step="any"
-            value={item.quantity}
-            onChange={e => update(idx, 'quantity', e.target.value)}
-            className="bg-secondary border-0 h-8 text-right"
-          />
-          <Select value={item.unit} onValueChange={v => update(idx, 'unit', v)}>
-            <SelectTrigger className="bg-secondary border-0 h-8"><SelectValue /></SelectTrigger>
-            <SelectContent>{UNITS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
-          </Select>
-          <Input
-            type="number" min="0" step="0.01"
-            value={item.unit_price}
-            onChange={e => update(idx, 'unit_price', e.target.value)}
-            className="bg-secondary border-0 h-8 text-right"
-          />
-          {gstEnabled && (
-            <div className="flex justify-center">
-              <Switch checked={item.gst} onCheckedChange={v => update(idx, 'gst', v)} />
-            </div>
-          )}
-          <div className="text-right text-sm font-medium tabular-nums">
-            {formatAUD((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0))}
+        <div key={idx} className="bg-secondary/30 rounded-lg p-3 space-y-2">
+          {/* Description row - full width */}
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Description"
+              value={item.description}
+              onChange={e => update(idx, 'description', e.target.value)}
+              className="bg-secondary border-0 h-8 flex-1"
+            />
+            <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => remove(idx)}>
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
           </div>
-          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => remove(idx)}>
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
+          {/* Qty / Unit / Price / GST / Total row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="space-y-0.5">
+              <div className="text-xs text-muted-foreground px-1">Qty</div>
+              <Input
+                type="number" min="0" step="any"
+                value={item.quantity}
+                onChange={e => update(idx, 'quantity', e.target.value)}
+                className="bg-secondary border-0 h-8 w-20 text-right"
+              />
+            </div>
+            <div className="space-y-0.5">
+              <div className="text-xs text-muted-foreground px-1">Unit</div>
+              <Select value={item.unit} onValueChange={v => update(idx, 'unit', v)}>
+                <SelectTrigger className="bg-secondary border-0 h-8 w-24"><SelectValue /></SelectTrigger>
+                <SelectContent>{UNITS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-0.5">
+              <div className="text-xs text-muted-foreground px-1">Unit Price</div>
+              <Input
+                type="number" min="0" step="0.01"
+                value={item.unit_price}
+                onChange={e => update(idx, 'unit_price', e.target.value)}
+                className="bg-secondary border-0 h-8 w-28 text-right"
+              />
+            </div>
+            {gstEnabled && (
+              <div className="space-y-0.5">
+                <div className="text-xs text-muted-foreground px-1">GST</div>
+                <div className="flex items-center h-8 px-1">
+                  <Switch checked={item.gst} onCheckedChange={v => update(idx, 'gst', v)} />
+                </div>
+              </div>
+            )}
+            <div className="space-y-0.5 ml-auto">
+              <div className="text-xs text-muted-foreground px-1 text-right">Total</div>
+              <div className="h-8 flex items-center px-2 text-sm font-semibold tabular-nums text-right min-w-[80px]">
+                {formatAUD((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0))}
+              </div>
+            </div>
+          </div>
         </div>
       ))}
 

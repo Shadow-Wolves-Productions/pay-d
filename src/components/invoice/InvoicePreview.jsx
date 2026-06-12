@@ -27,28 +27,32 @@ export default function InvoicePreview({ invoice, template }) {
       className="bg-white text-gray-900 font-body"
       style={{ width: '794px', minHeight: '1123px', fontFamily: 'Inter, sans-serif', fontSize: '13px' }}
     >
-      {/* Header band */}
-      <div style={{ background: accent, padding: '32px 48px 28px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            {template?.logo_url && (
-              <img src={template.logo_url} alt="logo" style={{ height: template.logo_size || 80, maxWidth: 200, objectFit: 'contain', marginBottom: 12 }} />
-            )}
-            <div style={{ fontSize: 22, fontWeight: 800, color: '#000', letterSpacing: '-0.5px' }}>
-              {template?.business_name || 'Your Business'}
-            </div>
-            {template?.tagline && <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.6)', marginTop: 2 }}>{template.tagline}</div>}
+      {/* Thin accent top bar */}
+      <div style={{ background: accent, height: '6px' }} />
+
+      {/* Header */}
+      <div style={{ padding: '32px 48px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          {template?.logo_url && (
+            <img src={template.logo_url} alt="logo" style={{ height: template.logo_size || 80, maxWidth: 200, objectFit: 'contain', marginBottom: 12 }} />
+          )}
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#111', letterSpacing: '-0.5px' }}>
+            {template?.business_name || 'Your Business'}
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#000', letterSpacing: '-1px', textTransform: 'uppercase' }}>
-              {gstEnabled ? 'TAX INVOICE' : (invoice.title || 'INVOICE')}
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: 'rgba(0,0,0,0.7)', marginTop: 4 }}>
-              #{invoice.invoice_number}
-            </div>
+          {template?.tagline && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{template.tagline}</div>}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 28, fontWeight: 900, color: accent, letterSpacing: '-1px', textTransform: 'uppercase' }}>
+            {gstEnabled ? 'TAX\u2009INVOICE' : (invoice.title || 'INVOICE')}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#6b7280', marginTop: 4 }}>
+            #{invoice.invoice_number}
           </div>
         </div>
       </div>
+
+      {/* Divider below header */}
+      <div style={{ borderBottom: `2px solid ${accent}`, margin: '0 48px' }} />
 
       {/* Meta block */}
       <div style={{ padding: '24px 48px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb' }}>
@@ -101,7 +105,7 @@ export default function InvoicePreview({ invoice, template }) {
               <th style={{ textAlign: 'center', paddingBottom: 8, fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', width: 60 }}>Qty</th>
               <th style={{ textAlign: 'center', paddingBottom: 8, fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', width: 60 }}>Unit</th>
               <th style={{ textAlign: 'right', paddingBottom: 8, fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', width: 90 }}>Unit Price</th>
-              {gstEnabled && <th style={{ textAlign: 'center', paddingBottom: 8, fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', width: 50 }}>GST</th>}
+              {gstEnabled && <th style={{ textAlign: 'right', paddingBottom: 8, fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', width: 70 }}>GST</th>}
               <th style={{ textAlign: 'right', paddingBottom: 8, fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', width: 90 }}>Amount</th>
             </tr>
           </thead>
@@ -112,7 +116,7 @@ export default function InvoicePreview({ invoice, template }) {
                 <td style={{ padding: '8px 0', textAlign: 'center' }}>{item.quantity}</td>
                 <td style={{ padding: '8px 0', textAlign: 'center', color: '#9ca3af' }}>{item.unit}</td>
                 <td style={{ padding: '8px 0', textAlign: 'right', fontFamily: 'monospace' }}>{formatAUD(item.unit_price)}</td>
-                {gstEnabled && <td style={{ padding: '8px 0', textAlign: 'center', fontSize: 10 }}>{item.gst ? '✓' : '–'}</td>}
+                {gstEnabled && <td style={{ padding: '8px 0', textAlign: 'right', fontFamily: 'monospace' }}>{item.gst ? formatAUD((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0) * 0.1) : '—'}</td>}
                 <td style={{ padding: '8px 0', textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>
                   {formatAUD((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0))}
                 </td>
@@ -176,10 +180,12 @@ export default function InvoicePreview({ invoice, template }) {
       </div>
 
       {/* Footer */}
-      <div style={{ background: accent, padding: '12px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'rgba(0,0,0,0.6)', marginTop: 'auto' }}>
-        <span>{template?.business_name}</span>
-        <span style={{ fontWeight: 700, color: '#000' }}>Thank you for your business</span>
-        {template?.website && <span>{template.website}</span>}
+      <div style={{ borderTop: `2px solid ${accent}`, margin: '0 48px 0' }} />
+      <div style={{ padding: '12px 48px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 11, color: '#9ca3af', gap: 16 }}>
+        {template?.business_name && <span>{template.business_name}</span>}
+        {template?.abn && <><span>·</span><span>ABN {template.abn}</span></>}
+        {template?.email && <><span>·</span><span>{template.email}</span></>}
+        {gstEnabled && <><span>·</span><span>Registered for GST</span></>}
       </div>
     </div>
   );
