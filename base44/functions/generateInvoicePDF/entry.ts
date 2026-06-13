@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
 
     // ── Accent divider under header ───────────────────────────────────────────
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
+    doc.setLineWidth(0.6);
     doc.line(PL, y, W - PR, y);
     y += 9;
 
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
 
     // ── Light divider ─────────────────────────────────────────────────────────
     doc.setDrawColor(229, 231, 235);
-    doc.setLineWidth(0.25);
+    doc.setLineWidth(0.1);
     doc.line(PL, y, W - PR, y);
     y += 8;
 
@@ -264,20 +264,22 @@ Deno.serve(async (req) => {
     doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
 
-    doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
-    doc.line(tableLeft, y + 3.5, tableRight, y + 3.5);
-
     doc.text('DESCRIPTION', tableLeft, y);
     doc.text('QTY', qtyX, y, { align: 'center' });
     doc.text('UNIT', unitX, y, { align: 'center' });
     doc.text('UNIT PRICE', priceX, y, { align: 'right' });
     if (gstEnabled) doc.text('GST', gstX, y, { align: 'right' });
     doc.text('AMOUNT', amtX, y, { align: 'right' });
-    y += 7;
+    y += 4;
+
+    // Accent underline BELOW header text, with gap before first row
+    doc.setDrawColor(ar, ag, ab);
+    doc.setLineWidth(0.6);
+    doc.line(tableLeft, y, tableRight, y);
+    y += 6;
 
     doc.setDrawColor(229, 231, 235);
-    doc.setLineWidth(0.25);
+    doc.setLineWidth(0.1);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
 
@@ -303,7 +305,9 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'normal');
 
       y += rowH;
-      doc.line(tableLeft, y - 1.5, tableRight, y - 1.5);
+      doc.setDrawColor(229, 231, 235);
+      doc.setLineWidth(0.1);
+      doc.line(tableLeft, y - 1, tableRight, y - 1);
     });
 
     y += 8;
@@ -327,7 +331,7 @@ Deno.serve(async (req) => {
 
     // Accent divider before total
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
+    doc.setLineWidth(0.6);
     doc.line(totLabelX - 2, y, totValX, y);
     y += 5;
 
@@ -411,10 +415,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Footer — full width, left-to-right like preview ───────────────────────
+    // ── Footer — spans full width with items spread (like preview flex space-between) ──
     const footerY = pageH - 14;
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
+    doc.setLineWidth(0.6);
     doc.line(PL, footerY, W - PR, footerY);
 
     doc.setFont('helvetica', 'normal');
@@ -428,10 +432,38 @@ Deno.serve(async (req) => {
       gstEnabled && 'Registered for GST',
     ].filter(Boolean);
 
-    // Spread footer items evenly across the full width (left-aligned like preview)
     if (footerParts.length > 0) {
-      const footerText = footerParts.join('  ·  ');
-      doc.text(footerText, PL, footerY + 5);
+      const footerTextY = footerY + 5;
+      if (footerParts.length === 1) {
+        doc.text(footerParts[0], PL, footerTextY);
+      } else {
+        // Build full string with separator dots then measure each segment to space evenly
+        const sep = '  \u00b7  ';
+        const fullText = footerParts.join(sep);
+        const totalTextW = doc.getTextWidth(fullText);
+        const availW = W - PL - PR;
+        if (totalTextW >= availW) {
+          // Too wide — just render as-is left aligned
+          doc.text(fullText, PL, footerTextY);
+        } else {
+          // Spread: place first item at left, last at right, others evenly spaced
+          const sepW = doc.getTextWidth(sep);
+          const itemWidths = footerParts.map(p => doc.getTextWidth(p));
+          const totalItemW = itemWidths.reduce((a, b) => a + b, 0);
+          const totalSepW = sepW * (footerParts.length - 1);
+          const extraSpace = availW - totalItemW - totalSepW;
+          const bonusPerGap = extraSpace / (footerParts.length - 1);
+          let xPos = PL;
+          footerParts.forEach((part, i) => {
+            doc.text(part, xPos, footerTextY);
+            xPos += itemWidths[i];
+            if (i < footerParts.length - 1) {
+              doc.text('\u00b7', xPos + sepW / 2 + bonusPerGap / 2, footerTextY, { align: 'center' });
+              xPos += sepW + bonusPerGap;
+            }
+          });
+        }
+      }
     }
 
     const pdfBase64 = doc.output('datauristring').split(',')[1];
