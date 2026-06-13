@@ -153,30 +153,33 @@ export default function InvoicePreview({ invoice, template }) {
         </div>
       </div>
 
-      {/* Payment */}
-      {paymentMethods.length > 0 && (
-        <div style={{ padding: '16px 48px', background: '#f9fafb', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb', fontSize: 12 }}>
-          <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Payment Details</div>
-          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-            {paymentMethods.map((m, i) => <span key={i} style={{ color: '#374151' }}>{m}</span>)}
+      {/* Payment & Terms - Two Columns */}
+      <div style={{ padding: '20px 48px 0', fontSize: 12, flex: 1, display: 'flex', gap: 32 }}>
+        {/* Payment Details */}
+        {paymentMethods.length > 0 && (
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Payment Details</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {paymentMethods.map((m, i) => <span key={i} style={{ color: '#374151' }}>{m}</span>)}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Terms / Notes */}
-      <div style={{ padding: '20px 48px 0', fontSize: 12, flex: 1 }}>
-        {invoice.payment_terms && (
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Payment Terms</div>
-            <div style={{ color: '#374151' }}>{invoice.payment_terms}</div>
-          </div>
-        )}
-        {invoice.notes && (
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Notes</div>
-            <div style={{ color: '#374151', whiteSpace: 'pre-line' }}>{invoice.notes}</div>
-          </div>
-        )}
+        {/* Terms & Notes */}
+        <div style={{ flex: 1 }}>
+          {invoice.payment_terms && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Payment Terms</div>
+              <div style={{ color: '#374151' }}>{invoice.payment_terms}</div>
+            </div>
+          )}
+          {invoice.notes && (
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Notes</div>
+              <div style={{ color: '#374151', whiteSpace: 'pre-line' }}>{invoice.notes}</div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Footer */}
