@@ -34,8 +34,8 @@ Deno.serve(async (req) => {
 
     const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     const W = 210;
-    const PL = 18; // left padding
-    const PR = 18; // right padding
+    const PL = 20; // left padding
+    const PR = 22; // right padding (extra to keep text clear of edge)
     const pageH = 297;
     let y = 0;
 
@@ -57,9 +57,9 @@ Deno.serve(async (req) => {
       doc.text(template.tagline, PL, y + 11);
     }
 
-    const titleText = gstEnabled ? 'TAX\u2009INVOICE' : (invoice.title || 'INVOICE').toUpperCase();
+    const titleText = gstEnabled ? 'TAX INVOICE' : (invoice.title || 'INVOICE').toUpperCase();
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
+    doc.setFontSize(18);
     doc.setTextColor(ar, ag, ab);
     doc.text(titleText, W - PR, y + 5, { align: 'right' });
 
@@ -72,9 +72,9 @@ Deno.serve(async (req) => {
 
     // ── Accent divider under header ───────────────────────────────────────────
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
+    doc.setLineWidth(0.5);
     doc.line(PL, y, W - PR, y);
-    y += 6;
+    y += 8;
 
     // ── From (left) | Dates (right) ───────────────────────────────────────────
     const colW = (W - PL - PR) / 2;
@@ -134,13 +134,13 @@ Deno.serve(async (req) => {
       doc.text(invoice.po_reference, rightX, dateY, { align: 'right' });
     }
 
-    y = Math.max(fromY, dateY) + 6;
+    y = Math.max(fromY, dateY) + 8;
 
     // ── Light divider ─────────────────────────────────────────────────────────
-    doc.setDrawColor(229, 231, 235);
-    doc.setLineWidth(0.3);
+    doc.setDrawColor(220, 222, 226);
+    doc.setLineWidth(0.2);
     doc.line(PL, y, W - PR, y);
-    y += 6;
+    y += 8;
 
     // ── Bill To / Ship To ─────────────────────────────────────────────────────
     const hasShip = !invoice.ship_to_same_as_bill && (ship.business_name || ship.contact_name || ship.address);
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    y = Math.max(billY, shipY) + 8;
+    y = Math.max(billY, shipY) + 10;
 
     // ── Line items table ──────────────────────────────────────────────────────
     const tableLeft = PL;
@@ -214,8 +214,8 @@ Deno.serve(async (req) => {
 
     // Accent bottom border for header
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
-    doc.line(tableLeft, y + 3, tableRight, y + 3);
+    doc.setLineWidth(0.5);
+    doc.line(tableLeft, y + 3.5, tableRight, y + 3.5);
 
     doc.text('DESCRIPTION', tableLeft, y);
     doc.text('QTY', qtyX, y, { align: 'center' });
@@ -223,11 +223,11 @@ Deno.serve(async (req) => {
     doc.text('UNIT PRICE', priceX, y, { align: 'right' });
     if (gstEnabled) doc.text('GST', gstX, y, { align: 'right' });
     doc.text('AMOUNT', amtX, y, { align: 'right' });
-    y += 6;
+    y += 7;
 
     // Rows
-    doc.setDrawColor(243, 244, 246);
-    doc.setLineWidth(0.3);
+    doc.setDrawColor(235, 237, 240);
+    doc.setLineWidth(0.2);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
 
@@ -256,7 +256,7 @@ Deno.serve(async (req) => {
       doc.line(tableLeft, y - 1.5, tableRight, y - 1.5);
     });
 
-    y += 5;
+    y += 8;
 
     // ── Totals block ──────────────────────────────────────────────────────────
     const totLabelX = W - PR - 55;
@@ -276,9 +276,9 @@ Deno.serve(async (req) => {
 
     // Accent top border before total
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
-    doc.line(totLabelX - 2, y - 1, totValX, y - 1);
-    y += 2;
+    doc.setLineWidth(0.5);
+    doc.line(totLabelX - 2, y, totValX, y);
+    y += 4;
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
@@ -296,7 +296,7 @@ Deno.serve(async (req) => {
       y += 5;
     }
 
-    y += 6;
+    y += 10;
 
     // ── Payment Details & Terms — two columns ─────────────────────────────────
     const paymentMethods = [
@@ -367,7 +367,7 @@ Deno.serve(async (req) => {
     // ── Footer ────────────────────────────────────────────────────────────────
     const footerY = pageH - 14;
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.7);
+    doc.setLineWidth(0.5);
     doc.line(PL, footerY, W - PR, footerY);
 
     doc.setFont('helvetica', 'normal');
