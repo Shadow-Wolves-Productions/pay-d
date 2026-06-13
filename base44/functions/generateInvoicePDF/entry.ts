@@ -16,6 +16,22 @@ function formatDate(d) {
   catch { return d; }
 }
 
+async function loadImageAsBase64(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    for (const b of bytes) binary += String.fromCharCode(b);
+    const b64 = btoa(binary);
+    const ct = res.headers.get('content-type') || 'image/png';
+    return { data: b64, format: ct.includes('png') ? 'PNG' : 'JPEG' };
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -32,72 +48,92 @@ Deno.serve(async (req) => {
     const ship = invoice.ship_to_same_as_bill ? bill : (invoice.ship_to || {});
     const items = invoice.line_items || [];
 
+    // Pre-load logo
+    let logoImg = null;
+    if (template.logo_url) {
+      logoImg = await loadImageAsBase64(template.logo_url);
+    }
+
     const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     const W = 210;
-    const PL = 20; // left padding
-    const PR = 22; // right padding (extra to keep text clear of edge)
+    const PL = 20;
+    const PR = 22;
     const pageH = 297;
     let y = 0;
 
-    // ── Thin accent top bar ──────────────────────────────────────────────────
+    // ── Thin accent top bar (matches 6px = ~2.1mm) ───────────────────────────
     doc.setFillColor(ar, ag, ab);
-    doc.rect(0, 0, W, 2.5, 'F');
+    doc.rect(0, 0, W, 2.1, 'F');
     y = 10;
 
-    // ── Header: Business Name (left) | Invoice Title (right) ─────────────────
+    // ── Header: Logo + Business Name (left) | Invoice Title (right) ──────────
+    // Logo
+    const logoMaxH = (template.logo_size || 80) * 0.264583; // px to mm
+    const logoMaxW = 53; // ~200px
+    if (logoImg) {
+      try {
+        // Add image, fit within box
+        doc.addImage(logoImg.data, logoImg.format, PL, y, logoMaxW, logoMaxH, '', 'FAST');
+        y += logoMaxH + 3.5;
+      } catch {
+        // skip logo if it fails
+      }
+    }
+
+    // Business name
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(17);
+    doc.setFontSize(16);
     doc.setTextColor(17, 17, 17);
     doc.text(template.business_name || 'Your Business', PL, y + 5);
 
     if (template.tagline) {
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
+      doc.setFontSize(8);
       doc.setTextColor(107, 114, 128);
-      doc.text(template.tagline, PL, y + 11);
+      doc.text(template.tagline, PL, y + 10);
     }
 
+    // Title (right side) — drawn at same y as business name
     const titleText = gstEnabled ? 'TAX INVOICE' : (invoice.title || 'INVOICE').toUpperCase();
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
+    doc.setFontSize(20);
     doc.setTextColor(ar, ag, ab);
     doc.text(titleText, W - PR, y + 5, { align: 'right' });
 
+    // Invoice number below title
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setTextColor(107, 114, 128);
     doc.text('#' + invoice.invoice_number, W - PR, y + 12, { align: 'right' });
 
-    y += 20;
+    y += 22;
 
     // ── Accent divider under header ───────────────────────────────────────────
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.7);
     doc.line(PL, y, W - PR, y);
-    y += 8;
+    y += 9;
 
-    // ── From (left) | Dates (right) ───────────────────────────────────────────
+    // ── From (left) | Details (right) ─────────────────────────────────────────
     const colW = (W - PL - PR) / 2;
     const rightX = W - PR;
     const sectionLabelSize = 7;
     const sectionBodySize = 8.5;
 
-    // From label
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(sectionLabelSize);
     doc.setTextColor(107, 114, 128);
     doc.text('FROM', PL, y);
-
-    // Details label
     doc.text('DETAILS', rightX, y, { align: 'right' });
-    y += 4.5;
+    y += 5;
 
-    // From body
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(sectionBodySize);
-    doc.setTextColor(55, 65, 81);
+
     let fromY = y;
+    doc.setTextColor(107, 114, 128);
     if (template.abn) { doc.text('ABN ' + template.abn, PL, fromY); fromY += 4.5; }
+    doc.setTextColor(55, 65, 81);
     if (template.address) {
       const lines = doc.splitTextToSize(template.address, colW - 5);
       doc.text(lines, PL, fromY); fromY += lines.length * 4.5;
@@ -110,17 +146,34 @@ Deno.serve(async (req) => {
       doc.setTextColor(55, 65, 81);
     }
 
-    // Dates body (right aligned)
     let dateY = y;
     doc.setFontSize(sectionBodySize);
     doc.setTextColor(55, 65, 81);
-    doc.text('Issue Date: ', W - PR - 38, dateY);
+
+    const renderDateRow = (label, val, valColor) => {
+      const labelW = doc.getTextWidth(label + ' ');
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(55, 65, 81);
+      doc.text(label, rightX - doc.getTextWidth(label + ' ') - doc.getTextWidth(formatDate(val)), dateY);
+      doc.setFont('helvetica', 'bold');
+      if (valColor) doc.setTextColor(...valColor); else doc.setTextColor(55, 65, 81);
+      doc.text(formatDate(val), rightX, dateY, { align: 'right' });
+      doc.setTextColor(55, 65, 81);
+      dateY += 4.5;
+    };
+
+    // Simple right-aligned date rows
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(sectionBodySize);
+    doc.setTextColor(55, 65, 81);
+    doc.text('Issue Date: ', W - PR - 40, dateY);
     doc.setFont('helvetica', 'bold');
     doc.text(formatDate(invoice.issue_date), rightX, dateY, { align: 'right' });
     dateY += 4.5;
 
     doc.setFont('helvetica', 'normal');
-    doc.text('Due Date: ', W - PR - 38, dateY);
+    doc.setTextColor(55, 65, 81);
+    doc.text('Due Date: ', W - PR - 40, dateY);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(220, 50, 50);
     doc.text(formatDate(invoice.due_date), rightX, dateY, { align: 'right' });
@@ -129,16 +182,17 @@ Deno.serve(async (req) => {
 
     if (invoice.po_reference) {
       doc.setFont('helvetica', 'normal');
-      doc.text('PO/Ref: ', W - PR - 38, dateY);
+      doc.text('PO/Ref: ', W - PR - 40, dateY);
       doc.setFont('helvetica', 'bold');
       doc.text(invoice.po_reference, rightX, dateY, { align: 'right' });
+      dateY += 4.5;
     }
 
-    y = Math.max(fromY, dateY) + 8;
+    y = Math.max(fromY, dateY) + 9;
 
     // ── Light divider ─────────────────────────────────────────────────────────
-    doc.setDrawColor(220, 222, 226);
-    doc.setLineWidth(0.2);
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.25);
     doc.line(PL, y, W - PR, y);
     y += 8;
 
@@ -152,7 +206,7 @@ Deno.serve(async (req) => {
     doc.setTextColor(107, 114, 128);
     doc.text('BILL TO', PL, y);
     if (hasShip) doc.text('SHIP TO', shipX, y);
-    y += 4.5;
+    y += 5;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(sectionBodySize);
@@ -160,11 +214,11 @@ Deno.serve(async (req) => {
 
     const billLines = [
       bill.business_name && { text: bill.business_name, bold: true },
-      bill.contact_name && { text: bill.contact_name },
-      bill.abn && { text: 'ABN ' + bill.abn, color: [107,114,128] },
-      bill.address && { text: bill.address },
-      bill.email && { text: bill.email },
-      bill.phone && { text: bill.phone },
+      bill.contact_name  && { text: bill.contact_name },
+      bill.abn           && { text: 'ABN ' + bill.abn, color: [107,114,128] },
+      bill.address       && { text: bill.address },
+      bill.email         && { text: bill.email },
+      bill.phone         && { text: bill.phone },
     ].filter(Boolean);
 
     let billY = y;
@@ -180,8 +234,8 @@ Deno.serve(async (req) => {
     if (hasShip) {
       const shipLines = [
         ship.business_name && { text: ship.business_name, bold: true },
-        ship.contact_name && { text: ship.contact_name },
-        ship.address && { text: ship.address },
+        ship.contact_name  && { text: ship.contact_name },
+        ship.address       && { text: ship.address },
       ].filter(Boolean);
       shipLines.forEach(line => {
         doc.setFont('helvetica', line.bold ? 'bold' : 'normal');
@@ -195,26 +249,23 @@ Deno.serve(async (req) => {
     y = Math.max(billY, shipY) + 10;
 
     // ── Line items table ──────────────────────────────────────────────────────
-    const tableLeft = PL;
+    const tableLeft  = PL;
     const tableRight = W - PR;
-    const tableW = tableRight - tableLeft;
+    const tableW     = tableRight - tableLeft;
 
-    // Column positions
     const descW = gstEnabled ? tableW - 22 - 22 - 25 - 20 : tableW - 22 - 22 - 25;
-    const qtyX   = tableLeft + descW + 11;  // center of qty col
-    const unitX  = qtyX + 22;               // center of unit col
-    const priceX = unitX + 22;              // right of price col
-    const gstX   = gstEnabled ? priceX + 15 : 0; // right of gst col
+    const qtyX   = tableLeft + descW + 11;
+    const unitX  = qtyX + 22;
+    const priceX = unitX + 22;
+    const gstX   = gstEnabled ? priceX + 15 : 0;
     const amtX   = tableRight;
 
-    // Header row
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
 
-    // Accent bottom border for header
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.7);
     doc.line(tableLeft, y + 3.5, tableRight, y + 3.5);
 
     doc.text('DESCRIPTION', tableLeft, y);
@@ -225,9 +276,8 @@ Deno.serve(async (req) => {
     doc.text('AMOUNT', amtX, y, { align: 'right' });
     y += 7;
 
-    // Rows
-    doc.setDrawColor(235, 237, 240);
-    doc.setLineWidth(0.2);
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.25);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
 
@@ -261,6 +311,7 @@ Deno.serve(async (req) => {
     // ── Totals block ──────────────────────────────────────────────────────────
     const totLabelX = W - PR - 55;
     const totValX   = W - PR;
+
     const addRow = (label, value, bold = false, color = [107, 114, 128]) => {
       doc.setFont('helvetica', bold ? 'bold' : 'normal');
       doc.setFontSize(bold ? 10 : 8.5);
@@ -274,19 +325,19 @@ Deno.serve(async (req) => {
     if ((invoice.discount_amount || 0) > 0) addRow('Discount', '-' + formatAUD(invoice.discount_amount));
     if (gstEnabled) addRow('GST (10%)', formatAUD(invoice.gst_amount));
 
-    // Accent top border before total
+    // Accent divider before total
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.7);
     doc.line(totLabelX - 2, y, totValX, y);
-    y += 4;
+    y += 5;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(13);
     doc.setTextColor(17, 17, 17);
     doc.text('Total Due', totLabelX, y);
     doc.setTextColor(ar, ag, ab);
     doc.text(formatAUD(invoice.total), totValX, y, { align: 'right' });
-    y += 6;
+    y += 5;
 
     if (gstEnabled && (invoice.gst_amount || 0) > 0) {
       doc.setFont('helvetica', 'normal');
@@ -300,13 +351,13 @@ Deno.serve(async (req) => {
 
     // ── Payment Details & Terms — two columns ─────────────────────────────────
     const paymentMethods = [
-      template.bank_name     && 'Bank: ' + template.bank_name,
-      template.account_name  && 'Account Name: ' + template.account_name,
-      template.bsb           && 'BSB: ' + template.bsb,
-      template.account_number&& 'Account: ' + template.account_number,
-      template.paypal_email  && 'PayPal: ' + template.paypal_email,
-      template.pay_id        && 'PayID: ' + template.pay_id,
-      template.other_payment && template.other_payment,
+      template.bank_name      && 'Bank: ' + template.bank_name,
+      template.account_name   && 'Account Name: ' + template.account_name,
+      template.bsb            && 'BSB: ' + template.bsb,
+      template.account_number && 'Account: ' + template.account_number,
+      template.paypal_email   && 'PayPal: ' + template.paypal_email,
+      template.pay_id         && 'PayID: ' + template.pay_id,
+      template.other_payment  && template.other_payment,
     ].filter(Boolean);
 
     const halfW = (W - PL - PR) / 2 - 8;
@@ -315,14 +366,13 @@ Deno.serve(async (req) => {
     const hasTerms   = !!(invoice.payment_terms || invoice.notes);
 
     if (hasPayment || hasTerms) {
-      // Left col: Payment Details
       let leftY = y;
       if (hasPayment) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(sectionLabelSize);
         doc.setTextColor(107, 114, 128);
         doc.text('PAYMENT DETAILS', PL, leftY);
-        leftY += 4.5;
+        leftY += 5;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(55, 65, 81);
@@ -333,41 +383,38 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Right col: Terms & Notes
       let rightY = y;
       if (invoice.payment_terms) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(sectionLabelSize);
         doc.setTextColor(107, 114, 128);
         doc.text('PAYMENT TERMS', rightColX, rightY);
-        rightY += 4.5;
+        rightY += 5;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(55, 65, 81);
         const termLines = doc.splitTextToSize(invoice.payment_terms, halfW);
         doc.text(termLines, rightColX, rightY);
-        rightY += termLines.length * 4.5 + 5;
+        rightY += termLines.length * 4.5 + 6;
       }
       if (invoice.notes) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(sectionLabelSize);
         doc.setTextColor(107, 114, 128);
         doc.text('NOTES', rightColX, rightY);
-        rightY += 4.5;
+        rightY += 5;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(55, 65, 81);
         const noteLines = doc.splitTextToSize(invoice.notes, halfW);
         doc.text(noteLines, rightColX, rightY);
       }
-
-      y = Math.max(leftY, rightY) + 6;
     }
 
-    // ── Footer ────────────────────────────────────────────────────────────────
+    // ── Footer — full width, left-to-right like preview ───────────────────────
     const footerY = pageH - 14;
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.7);
     doc.line(PL, footerY, W - PR, footerY);
 
     doc.setFont('helvetica', 'normal');
@@ -381,7 +428,11 @@ Deno.serve(async (req) => {
       gstEnabled && 'Registered for GST',
     ].filter(Boolean);
 
-    doc.text(footerParts.join('  ·  '), W / 2, footerY + 5, { align: 'center' });
+    // Spread footer items evenly across the full width (left-aligned like preview)
+    if (footerParts.length > 0) {
+      const footerText = footerParts.join('  ·  ');
+      doc.text(footerText, PL, footerY + 5);
+    }
 
     const pdfBase64 = doc.output('datauristring').split(',')[1];
     return Response.json({ pdf: pdfBase64 });
