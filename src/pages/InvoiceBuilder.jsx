@@ -295,7 +295,7 @@ export default function InvoiceBuilder() {
 
   return (
     <AppShell>
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6">
+      <div className="px-4 sm:px-6 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
           <div>
@@ -325,13 +325,8 @@ export default function InvoiceBuilder() {
           </Tabs>
         </div>
 
-        <div className="lg:grid lg:grid-cols-[1fr_794px] gap-6 xl:gap-8">
-          {/* Form */}
-          <div className={tab !== 'preview' ? 'block' : 'hidden lg:block'}>
-            {formContent}
-          </div>
-
-          {/* Preview */}
+        <div className="lg:grid lg:grid-cols-[620px_1fr] gap-6 xl:gap-8">
+          {/* Preview - left side */}
           <div className={`${tab !== 'form' ? 'block' : 'hidden lg:block'} relative`}>
             <div className="sticky top-20">
               <div className="flex items-center justify-between mb-3">
@@ -340,12 +335,17 @@ export default function InvoiceBuilder() {
                   <Maximize2 className="w-3.5 h-3.5" /> Full Screen
                 </Button>
               </div>
-              <div className="overflow-auto rounded-xl border border-border shadow-2xl" style={{ maxHeight: 'calc(100vh - 140px)' }}>
-                <div style={{ transform: 'scale(0.75)', transformOrigin: 'top left', width: '1058px' }}>
+              <div className="overflow-hidden rounded-xl border border-border shadow-2xl" style={{ maxHeight: 'calc(100vh - 140px)', overflowY: 'auto' }}>
+                <div style={{ transform: 'scale(0.78)', transformOrigin: 'top left', width: '1018px' }}>
                   <InvoicePreview invoice={invoiceForPreview} template={selectedTemplate} />
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Form - right side, spacious */}
+          <div className={tab !== 'preview' ? 'block' : 'hidden lg:block'}>
+            {formContent}
           </div>
         </div>
       </div>
