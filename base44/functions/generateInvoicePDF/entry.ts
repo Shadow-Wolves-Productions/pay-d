@@ -67,14 +67,27 @@ Deno.serve(async (req) => {
     y = 10;
 
     // ── Header: Logo + Business Name (left) | Invoice Title (right) ──────────
-    // Logo
+    // Both sides are anchored to the same headerTopY so they stay vertically aligned.
+    const headerTopY = y;
     const logoMaxH = (template.logo_size || 80) * 0.264583; // px to mm
-    const logoMaxW = 53; // ~200px
+    const logoMaxW = 53; // max width in mm (~200px)
+
+    let leftBottomY = headerTopY;
+
     if (logoImg) {
       try {
-        // Add image, fit within box
-        doc.addImage(logoImg.data, logoImg.format, PL, y, logoMaxW, logoMaxH, '', 'FAST');
-        y += logoMaxH + 3.5;
+        // Use a temporary canvas approach: clamp to max box while preserving aspect ratio.
+        // jsPDF's addImage takes (data, format, x, y, w, h) — if we pass 0 for one dimension
+        // it stretches, so we must calculate explicitly.
+        // We'll place at max box and let the natural image dims handle it via getImageProperties.
+        const props = doc.getImageProperties(logoImg.data);
+        const naturalW = props.width;
+        const naturalH = props.height;
+        const scale = Math.min(logoMaxW / naturalW, logoMaxH / naturalH);
+        const drawW = naturalW * scale;
+        const drawH = naturalH * scale;
+        doc.addImage(logoImg.data, logoImg.format, PL, headerTopY, drawW, drawH, '', 'FAST');
+        leftBottomY = headerTopY + drawH + 3;
       } catch {
         // skip logo if it fails
       }
@@ -84,29 +97,31 @@ Deno.serve(async (req) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(17, 17, 17);
-    doc.text(template.business_name || 'Your Business', PL, y + 5);
+    doc.text(template.business_name || 'Your Business', PL, leftBottomY + 5);
+    leftBottomY += 8;
 
     if (template.tagline) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(107, 114, 128);
-      doc.text(template.tagline, PL, y + 10);
+      doc.text(template.tagline, PL, leftBottomY + 2);
+      leftBottomY += 6;
     }
 
-    // Title (right side) — drawn at same y as business name
+    // Title (right side) — always anchored to headerTopY, never pushed by logo
     const titleText = gstEnabled ? 'TAX INVOICE' : (invoice.title || 'INVOICE').toUpperCase();
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
     doc.setTextColor(ar, ag, ab);
-    doc.text(titleText, W - PR, y + 5, { align: 'right' });
+    doc.text(titleText, W - PR, headerTopY + 7, { align: 'right' });
 
     // Invoice number below title
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(107, 114, 128);
-    doc.text('#' + invoice.invoice_number, W - PR, y + 12, { align: 'right' });
+    doc.text('#' + invoice.invoice_number, W - PR, headerTopY + 14, { align: 'right' });
 
-    y += 22;
+    y = Math.max(leftBottomY, headerTopY + 20) + 4;
 
     // ── Accent divider under header ───────────────────────────────────────────
     doc.setDrawColor(ar, ag, ab);
@@ -131,6 +146,10 @@ Deno.serve(async (req) => {
     doc.setFontSize(sectionBodySize);
 
     let fromY = y;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(17, 17, 17);
+    if (template.business_name) { doc.text(template.business_name, PL, fromY); fromY += 4.5; }
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(107, 114, 128);
     if (template.abn) { doc.text('ABN ' + template.abn, PL, fromY); fromY += 4.5; }
     doc.setTextColor(55, 65, 81);
@@ -312,8 +331,8 @@ Deno.serve(async (req) => {
 
     y += 8;
 
-    // ── Totals block ──────────────────────────────────────────────────────────
-    const totLabelX = W - PR - 55;
+    // ── Totals block — label left-aligned to table, value right-aligned ──────
+    const totLabelX = tableLeft;
     const totValX   = W - PR;
 
     const addRow = (label, value, bold = false, color = [107, 114, 128]) => {
@@ -332,7 +351,7 @@ Deno.serve(async (req) => {
     // Accent divider before total
     doc.setDrawColor(ar, ag, ab);
     doc.setLineWidth(0.6);
-    doc.line(totLabelX - 2, y, totValX, y);
+    doc.line(totLabelX, y, totValX, y);
     y += 5;
 
     doc.setFont('helvetica', 'bold');
