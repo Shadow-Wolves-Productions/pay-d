@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
 
     // ── Accent divider under header ───────────────────────────────────────────
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.6);
+    doc.setLineWidth(0.4);
     doc.line(PL, y, W - PR, y);
     y += 9;
 
@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
 
     // Accent underline BELOW header text, with gap before first row
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.6);
+    doc.setLineWidth(0.4);
     doc.line(tableLeft, y, tableRight, y);
     y += 6;
 
@@ -331,8 +331,8 @@ Deno.serve(async (req) => {
 
     y += 8;
 
-    // ── Totals block — label left-aligned to table, value right-aligned ──────
-    const totLabelX = tableLeft;
+    // ── Totals block — label aligns with divider start, value right-aligned ──
+    const totLabelX = W - PR - 65;
     const totValX   = W - PR;
 
     const addRow = (label, value, bold = false, color = [107, 114, 128]) => {
@@ -350,7 +350,7 @@ Deno.serve(async (req) => {
 
     // Accent divider before total
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.6);
+    doc.setLineWidth(0.4);
     doc.line(totLabelX, y, totValX, y);
     y += 5;
 
@@ -437,7 +437,7 @@ Deno.serve(async (req) => {
     // ── Footer — spans full width with items spread (like preview flex space-between) ──
     const footerY = pageH - 14;
     doc.setDrawColor(ar, ag, ab);
-    doc.setLineWidth(0.6);
+    doc.setLineWidth(0.4);
     doc.line(PL, footerY, W - PR, footerY);
 
     doc.setFont('helvetica', 'normal');
