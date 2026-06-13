@@ -29,6 +29,14 @@
       "type": "string",
       "format": "date"
     },
+    "sent_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date"
+    },
     "po_reference": {
       "type": "string"
     },

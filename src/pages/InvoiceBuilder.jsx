@@ -232,6 +232,14 @@ export default function InvoiceBuilder() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Date Sent</Label>
+            <Input type="date" value={form.sent_date || ''} onChange={e => set('sent_date', e.target.value)} className="bg-secondary border-0 h-8" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Date Paid</Label>
+            <Input type="date" value={form.paid_date || ''} onChange={e => set('paid_date', e.target.value)} className="bg-secondary border-0 h-8" />
+          </div>
         </div>
       </Section>
 

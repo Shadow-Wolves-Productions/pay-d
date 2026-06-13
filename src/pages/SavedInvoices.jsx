@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Copy, Trash2, ExternalLink, Search, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatAUD, effectiveStatus } from '@/lib/invoiceCalc';
-import { formatDisplayDate } from '@/lib/dateUtils';
+import { formatDisplayDate, today } from '@/lib/dateUtils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function SavedInvoices() {
@@ -32,7 +32,7 @@ export default function SavedInvoices() {
   });
 
   const updateStatusMut = useMutation({
-    mutationFn: ({ id, status }) => base44.entities.Invoice.update(id, { status }),
+    mutationFn: ({ id, status, sent_date, paid_date }) => base44.entities.Invoice.update(id, { status, sent_date, paid_date }),
     onSuccess: () => { qc.invalidateQueries(['invoices']); toast.success('Status updated'); },
   });
 
@@ -95,6 +95,8 @@ export default function SavedInvoices() {
                     <th className="text-right px-6 py-3">Total</th>
                     <th className="text-left px-6 py-3 hidden md:table-cell">Items</th>
                     <th className="text-left px-6 py-3 hidden lg:table-cell">Due</th>
+                    <th className="text-left px-6 py-3 hidden xl:table-cell">Sent</th>
+                    <th className="text-left px-6 py-3 hidden xl:table-cell">Paid</th>
                     <th className="text-left px-6 py-3">Status</th>
                     <th className="px-6 py-3 w-36 text-right" />
                   </tr>
@@ -116,8 +118,15 @@ export default function SavedInvoices() {
                         <td className="px-6 py-4 text-right font-semibold tabular-nums">{formatAUD(inv.total)}</td>
                         <td className="px-6 py-4 text-muted-foreground hidden md:table-cell">{inv.line_items?.length || 0}</td>
                         <td className="px-6 py-4 text-muted-foreground hidden lg:table-cell">{formatDisplayDate(inv.due_date)}</td>
+                        <td className="px-6 py-4 text-muted-foreground hidden xl:table-cell">{inv.sent_date ? formatDisplayDate(inv.sent_date) : <span className="text-muted-foreground/40">—</span>}</td>
+                        <td className="px-6 py-4 text-muted-foreground hidden xl:table-cell">{inv.paid_date ? formatDisplayDate(inv.paid_date) : <span className="text-muted-foreground/40">—</span>}</td>
                         <td className="px-6 py-4">
-                          <Select value={status} onValueChange={s => updateStatusMut.mutate({ id: inv.id, status: s })}>
+                          <Select value={status} onValueChange={s => {
+                            const updates = { id: inv.id, status: s, sent_date: inv.sent_date, paid_date: inv.paid_date };
+                            if (s === 'Sent' && !inv.sent_date) updates.sent_date = today();
+                            if (s === 'Paid' && !inv.paid_date) updates.paid_date = today();
+                            updateStatusMut.mutate(updates);
+                          }}>
                             <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none focus:ring-0 w-auto [&>svg]:hidden">
                               <StatusBadge status={status} />
                             </SelectTrigger>
