@@ -25,7 +25,7 @@ export default function InvoicePreview({ invoice, template }) {
     <div
       id="invoice-preview"
       className="bg-white text-gray-900 font-body"
-      style={{ width: '794px', minHeight: '1123px', fontFamily: 'Inter, sans-serif', fontSize: '13px' }}
+      style={{ width: '794px', minHeight: '1123px', fontFamily: 'Inter, sans-serif', fontSize: '13px', display: 'flex', flexDirection: 'column' }}
     >
       {/* Thin accent top bar */}
       <div style={{ background: accent, height: '6px' }} />
@@ -163,8 +163,8 @@ export default function InvoicePreview({ invoice, template }) {
         </div>
       )}
 
-      {/* Terms / Notes / Footer */}
-      <div style={{ padding: '20px 48px 32px', fontSize: 12 }}>
+      {/* Terms / Notes */}
+      <div style={{ padding: '20px 48px 0', fontSize: 12, flex: 1 }}>
         {invoice.payment_terms && (
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Payment Terms</div>
@@ -180,12 +180,14 @@ export default function InvoicePreview({ invoice, template }) {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: `2px solid ${accent}`, margin: '0 48px 0' }} />
-      <div style={{ padding: '12px 48px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 11, color: '#9ca3af', gap: 16 }}>
-        {template?.business_name && <span>{template.business_name}</span>}
-        {template?.abn && <><span>·</span><span>ABN {template.abn}</span></>}
-        {template?.email && <><span>·</span><span>{template.email}</span></>}
-        {gstEnabled && <><span>·</span><span>Registered for GST</span></>}
+      <div style={{ marginTop: 'auto' }}>
+        <div style={{ borderTop: `2px solid ${accent}`, margin: '0 48px 0' }} />
+        <div style={{ padding: '12px 48px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 11, color: '#9ca3af', gap: 16 }}>
+          {template?.business_name && <span>{template.business_name}</span>}
+          {template?.abn && <><span>·</span><span>ABN {template.abn}</span></>}
+          {template?.email && <><span>·</span><span>{template.email}</span></>}
+          {gstEnabled && <><span>·</span><span>Registered for GST</span></>}
+        </div>
       </div>
     </div>
   );
