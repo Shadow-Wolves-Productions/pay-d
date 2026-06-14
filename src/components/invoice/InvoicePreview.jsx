@@ -160,7 +160,10 @@ export default function InvoicePreview({ invoice, template }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Payment Details</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {paymentMethods.map((m, i) => <span key={i} style={{ color: '#374151' }}>{m}</span>)}
+              {paymentMethods.map((m, i) => {
+                const [label, ...rest] = m.split(': ');
+                return <span key={i} style={{ color: '#374151' }}><strong>{label}:</strong> {rest.join(': ')}</span>;
+              })}
             </div>
           </div>
         )}

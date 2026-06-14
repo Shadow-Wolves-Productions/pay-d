@@ -400,8 +400,13 @@ Deno.serve(async (req) => {
         doc.setFontSize(8.5);
         doc.setTextColor(55, 65, 81);
         paymentMethods.forEach(m => {
-          const wrapped = doc.splitTextToSize(m, halfW);
-          doc.text(wrapped, PL, leftY);
+          const [label, ...rest] = m.split(': ');
+          doc.setFont('helvetica', 'bold');
+          doc.text(label + ':', PL, leftY);
+          const labelWidth = doc.getTextWidth(label + ': ');
+          doc.setFont('helvetica', 'normal');
+          const wrapped = doc.splitTextToSize(rest.join(': '), halfW - labelWidth);
+          doc.text(wrapped, PL + labelWidth, leftY);
           leftY += wrapped.length * 4.5;
         });
       }
