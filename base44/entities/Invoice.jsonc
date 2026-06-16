@@ -5,6 +5,9 @@
     "template_id": {
       "type": "string"
     },
+    "project_id": {
+      "type": "string"
+    },
     "invoice_number": {
       "type": "string"
     },
@@ -17,7 +20,8 @@
         "Draft",
         "Sent",
         "Paid",
-        "Overdue"
+        "Overdue",
+        "Part Paid"
       ],
       "default": "Draft"
     },

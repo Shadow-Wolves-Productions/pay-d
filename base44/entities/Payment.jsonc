@@ -1,0 +1,44 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "invoice_id": {
+      "type": "string"
+    },
+    "invoice_number": {
+      "type": "string"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "Bank Transfer",
+        "Cash",
+        "Card",
+        "PayPal",
+        "Stripe",
+        "Wise",
+        "Cheque",
+        "Other"
+      ],
+      "default": "Bank Transfer"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "invoice_id",
+    "amount",
+    "payment_date"
+  ]
+}

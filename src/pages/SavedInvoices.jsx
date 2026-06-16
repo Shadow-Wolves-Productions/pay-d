@@ -56,7 +56,7 @@ export default function SavedInvoices() {
           title="Saved Invoices"
           subtitle="All your invoices in one place"
           action={
-            <Button onClick={() => navigate('/builder')} className="gap-2" style={{ background: '#f59e0b', color: '#000' }}>
+            <Button onClick={() => navigate('/builder')} className="gap-2" style={{ background: '#16C784', color: '#0F172A' }}>
               <Plus className="w-4 h-4" /> New Invoice
             </Button>
           }

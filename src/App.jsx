@@ -10,6 +10,8 @@ import Templates from '@/pages/Templates';
 import Clients from '@/pages/Clients';
 import InvoiceBuilder from '@/pages/InvoiceBuilder';
 import SavedInvoices from '@/pages/SavedInvoices';
+import Projects from '@/pages/Projects';
+import Payments from '@/pages/Payments';
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
             <Route path="/clients" element={<Clients />} />
             <Route path="/builder" element={<InvoiceBuilder />} />
             <Route path="/invoices" element={<SavedInvoices />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/payments" element={<Payments />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </Router>

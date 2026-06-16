@@ -65,6 +65,7 @@ export default function InvoiceBuilder() {
   const { data: templates = [] } = useQuery({ queryKey: ['templates'], queryFn: () => base44.entities.Template.list('-created_date') });
   const { data: clients = [] } = useQuery({ queryKey: ['clients'], queryFn: () => base44.entities.Client.list('-created_date') });
   const { data: allInvoices = [] } = useQuery({ queryKey: ['invoices'], queryFn: () => base44.entities.Invoice.list('-created_date') });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: () => base44.entities.Project.list('-created_date') });
 
   const selectedTemplate = useMemo(() => templates.find(t => t.id === form?.template_id) || templates[0], [templates, form?.template_id]);
 
@@ -240,6 +241,16 @@ export default function InvoiceBuilder() {
             <Label className="text-xs text-muted-foreground">Date Paid</Label>
             <Input type="date" value={form.paid_date || ''} onChange={e => set('paid_date', e.target.value)} className="bg-secondary border-0 h-8" />
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Link to Project</Label>
+            <Select value={form.project_id || 'none'} onValueChange={v => set('project_id', v === 'none' ? '' : v)}>
+              <SelectTrigger className="bg-secondary border-0 h-8"><SelectValue placeholder="No project" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No project</SelectItem>
+                {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </Section>
 
@@ -317,7 +328,7 @@ export default function InvoiceBuilder() {
             <Button variant="outline" size="sm" className="gap-2" onClick={() => handleSave('Draft')} disabled={saveMut.isPending}>
               <Save className="w-3.5 h-3.5" /> Save Draft
             </Button>
-            <Button size="sm" className="gap-2" style={{ background: selectedTemplate?.accent_colour || '#f59e0b', color: '#000' }} onClick={() => handleSave('Sent')} disabled={saveMut.isPending}>
+            <Button size="sm" className="gap-2" style={{ background: selectedTemplate?.accent_colour || '#16C784', color: '#0F172A' }} onClick={() => handleSave('Sent')} disabled={saveMut.isPending}>
               Save & Mark Sent
             </Button>
           </div>

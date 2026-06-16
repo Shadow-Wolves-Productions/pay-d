@@ -1,14 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Users, Layout, Hammer } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Layout, FolderOpen, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/templates', label: 'Templates', icon: Layout },
+  { to: '/projects', label: 'Projects', icon: FolderOpen },
   { to: '/clients', label: 'Clients', icon: Users },
-  { to: '/builder', label: 'New Invoice', icon: Hammer },
-  { to: '/invoices', label: 'Saved Invoices', icon: FileText },
+  { to: '/invoices', label: 'Invoices', icon: FileText },
+  { to: '/payments', label: 'Payments', icon: CreditCard },
+  { to: '/templates', label: 'Templates', icon: Layout },
 ];
 
 export default function AppShell({ children }) {
