@@ -74,7 +74,7 @@ export default function Dashboard() {
             <p className="text-muted-foreground text-sm mt-1">Overview of your invoicing activity</p>
           </div>
           <Link to="/builder">
-            <Button className="gap-2" style={{ background: '#f59e0b', color: '#000' }}>
+            <Button className="gap-2" style={{ background: '#16C784', color: '#0F172A' }}>
               <Plus className="w-4 h-4" /> New Invoice
             </Button>
           </Link>
@@ -82,7 +82,7 @@ export default function Dashboard() {
 
         {/* Main stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Total Outstanding" value={formatAUD(stats.totalOutstanding)} icon={Clock} colour="#f59e0b" sub={`${invoices.filter(i => effectiveStatus(i) !== 'Paid').length} unpaid`} />
+          <StatCard label="Total Outstanding" value={formatAUD(stats.totalOutstanding)} icon={Clock} colour="#0D9488" sub={`${invoices.filter(i => effectiveStatus(i) !== 'Paid').length} unpaid`} />
           <StatCard label="Total Paid" value={formatAUD(stats.totalPaid)} icon={CheckCircle} colour="#10b981" sub={`${invoices.filter(i => effectiveStatus(i) === 'Paid').length} invoices`} />
           <StatCard label="Overdue" value={stats.overdue} icon={AlertTriangle} colour="#ef4444" sub="Requires attention" />
           <StatCard label="Total Invoices" value={invoices.length} icon={TrendingUp} colour="#3b82f6" sub={`${stats.draft} draft · ${stats.sent} sent`} />
@@ -99,20 +99,20 @@ export default function Dashboard() {
               </div>
               <div>
                 <div className="text-2xl font-bold tabular-nums">{formatAUD(stats.monthOutstanding)}</div>
-                <div className="text-xs text-yellow-400 mt-1">Outstanding</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">This Quarter (BAS)</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+                <div className="text-xs mt-1" style={{ color: '#0D9488' }}>Outstanding</div>
+                </div>
+                </div>
+                </div>
+                <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">This Quarter (BAS)</h2>
+                <div className="grid grid-cols-2 gap-4">
+                <div>
                 <div className="text-2xl font-bold tabular-nums">{formatAUD(stats.qPaid)}</div>
                 <div className="text-xs text-emerald-400 mt-1">Paid</div>
-              </div>
-              <div>
+                </div>
+                <div>
                 <div className="text-2xl font-bold tabular-nums">{formatAUD(stats.qOutstanding)}</div>
-                <div className="text-xs text-yellow-400 mt-1">Outstanding</div>
+                <div className="text-xs mt-1" style={{ color: '#0D9488' }}>Outstanding</div>
               </div>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function Dashboard() {
             <p className="text-sm mt-1">Create a template and start invoicing</p>
             <div className="flex gap-3 justify-center mt-6">
               <Link to="/templates"><Button variant="outline">Create Template</Button></Link>
-              <Link to="/builder"><Button style={{ background: '#f59e0b', color: '#000' }}>New Invoice</Button></Link>
+              <Link to="/builder"><Button style={{ background: '#16C784', color: '#0F172A' }}>New Invoice</Button></Link>
             </div>
           </div>
         )}

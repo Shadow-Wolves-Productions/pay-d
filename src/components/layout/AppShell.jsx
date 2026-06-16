@@ -18,7 +18,9 @@ export default function AppShell({ children }) {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-screen-xl mx-auto px-4 flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
-            <span className="text-accent font-bold text-lg tracking-tight font-heading">⚡ Invoice Forge</span>
+            <span className="font-black text-xl tracking-tight font-heading" style={{ color: '#F7FAFC', letterSpacing: '-0.02em' }}>
+              PAY<span style={{ color: '#16C784' }}>'</span>D
+            </span>
           </div>
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map(({ to, label, icon: Icon }) => (
