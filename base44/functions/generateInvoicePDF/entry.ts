@@ -439,56 +439,42 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Footer — spans full width with items spread (like preview flex space-between) ──
+    // ── Footer — PAY'D branding ───────────────────────────────────────────────
     const footerY = pageH - 14;
     doc.setDrawColor(ar, ag, ab);
     doc.setLineWidth(0.4);
     doc.line(PL, footerY, W - PR, footerY);
 
+    const footerTextY = footerY + 6;
+    const midX = W / 2;
+
+    // "PAY'D" wordmark centred — render "PAY" then green apostrophe then "D"
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42); // navy
+    const payW = doc.getTextWidth("PAY");
+    const apostW = doc.getTextWidth("'");
+    const dW = doc.getTextWidth("D");
+    const tagline = "Send It. Track It. Get Pay'd.";
+    doc.setFontSize(7.5);
+    const tagW = doc.getTextWidth(tagline);
+    const totalW = payW + apostW + dW + 3 + tagW; // 3mm gap
+    const startX = midX - totalW / 2;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text("PAY", startX, footerTextY);
+    doc.setTextColor(22, 199, 132); // emerald
+    doc.text("'", startX + payW, footerTextY);
+    doc.setTextColor(15, 23, 42);
+    doc.text("D", startX + payW + apostW, footerTextY);
+
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(156, 163, 175);
-
-    const footerParts = [
-      template.business_name,
-      template.abn && 'ABN ' + template.abn,
-      template.email,
-      gstEnabled && 'Registered for GST',
-    ].filter(Boolean);
-
-    if (footerParts.length > 0) {
-      const footerTextY = footerY + 5;
-      if (footerParts.length === 1) {
-        doc.text(footerParts[0], PL, footerTextY);
-      } else {
-        // Build full string with separator dots then measure each segment to space evenly
-        const sep = '  \u00b7  ';
-        const fullText = footerParts.join(sep);
-        const totalTextW = doc.getTextWidth(fullText);
-        const availW = W - PL - PR;
-        if (totalTextW >= availW) {
-          // Too wide — just render as-is left aligned
-          doc.text(fullText, PL, footerTextY);
-        } else {
-          // Spread: place first item at left, last at right, others evenly spaced
-          const sepW = doc.getTextWidth(sep);
-          const itemWidths = footerParts.map(p => doc.getTextWidth(p));
-          const totalItemW = itemWidths.reduce((a, b) => a + b, 0);
-          const totalSepW = sepW * (footerParts.length - 1);
-          const extraSpace = availW - totalItemW - totalSepW;
-          const bonusPerGap = extraSpace / (footerParts.length - 1);
-          let xPos = PL;
-          footerParts.forEach((part, i) => {
-            doc.text(part, xPos, footerTextY);
-            xPos += itemWidths[i];
-            if (i < footerParts.length - 1) {
-              doc.text('\u00b7', xPos + sepW / 2 + bonusPerGap / 2, footerTextY, { align: 'center' });
-              xPos += sepW + bonusPerGap;
-            }
-          });
-        }
-      }
-    }
+    doc.text('\u00b7', startX + payW + apostW + dW + 1.5, footerTextY, { align: 'center' });
+    doc.text(tagline, startX + payW + apostW + dW + 3, footerTextY);
 
     const pdfBase64 = doc.output('datauristring').split(',')[1];
     return Response.json({ pdf: pdfBase64 });

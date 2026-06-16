@@ -59,6 +59,7 @@ export default function InvoicePreview({ invoice, template }) {
         {/* From */}
         <div style={{ fontSize: 12 }}>
           <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>From</div>
+          {template?.business_name && <div style={{ fontWeight: 700, color: '#111' }}>{template.business_name}</div>}
           {template?.abn && <div style={{ color: '#6b7280' }}>ABN {template.abn}</div>}
           {template?.address && <div style={{ whiteSpace: 'pre-line' }}>{template.address}</div>}
           {template?.email && <div>{template.email}</div>}
@@ -188,11 +189,12 @@ export default function InvoicePreview({ invoice, template }) {
       {/* Footer */}
       <div style={{ marginTop: 'auto' }}>
         <div style={{ borderTop: `2px solid ${accent}`, margin: '0 48px 0' }} />
-        <div style={{ padding: '12px 48px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 11, color: '#9ca3af', gap: 16 }}>
-          {template?.business_name && <span>{template.business_name}</span>}
-          {template?.abn && <><span>·</span><span>ABN {template.abn}</span></>}
-          {template?.email && <><span>·</span><span>{template.email}</span></>}
-          {gstEnabled && <><span>·</span><span>Registered for GST</span></>}
+        <div style={{ padding: '12px 48px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontWeight: 900, fontSize: 13, letterSpacing: '-0.03em', color: '#0F172A' }}>
+            PAY<span style={{ color: '#16C784' }}>'</span>D
+          </span>
+          <span style={{ fontSize: 11, color: '#9ca3af' }}>·</span>
+          <span style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>Send It. Track It. Get Pay'd.</span>
         </div>
       </div>
     </div>
